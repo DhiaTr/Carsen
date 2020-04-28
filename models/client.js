@@ -4,6 +4,12 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 
 const schema = mongoose.Schema({
+    CIN: {
+        type: String,
+        minlength: 8,
+        maxlength: 8,
+        required: true
+    },
     FirstName: {
         type: String,
         minlength: 10,
@@ -27,18 +33,8 @@ const schema = mongoose.Schema({
         minlength: 30,
         maxlength: 150,
         required: true
-    },
-    password: {
-        type: String,
-        minlength: 5,
-        maxlength: 1024,
-        required: true
     }
 });
-
-schema.methods.generateAuthToken = function () {
-    return jwt.sign({ _id: this._id }, config.get('jwtPrivateKey'));
-}
 
 const Client = mongoose.model('Client', schema);
 
@@ -47,8 +43,7 @@ function validateClient(client) {
         FirstName: Joi.string().min(10).max(150).required(),
         LastName: Joi.string().min(10).max(150).required(),
         phone: Joi.string().min(8).max(12).required(),
-        address: Joi.string().min(30).max(150).required(),
-        password: Joi.string().min(5).max(1024).required()
+        address: Joi.string().min(30).max(150).required()
     }
     return Joi.validate(client, schema);
 }

@@ -4,7 +4,7 @@ const Joi = require('joi');
 const schema = mongoose.Schema({
     B_Name: {
         type: String,
-        minlength: 10,
+        minlength: 5,
         maxlength: 150,
         required: true
     },
@@ -20,7 +20,7 @@ const schema = mongoose.Schema({
         maxlength: 100,
         required: true
     },
-    address: {
+    adress: {
         type: String,
         minlength: 20,
         maxlength: 255,
@@ -41,7 +41,7 @@ function validateBase(Base) {
         b_Name: Joi.string().min(10).max(150).required(),
         Region: Joi.string().min(5).max(100).required(),
         city: Joi.string().min(5).max(100).required(),
-        address: Joi.string().min(20).max(255).required(),
+        adress: Joi.string().min(20).max(255).required(),
         phone: Joi.string().min(8).max(20).required()
     }
     return Joi.validate(Base, schema);
