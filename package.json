@@ -1,0 +1,16 @@
+{
+  "name": "carsen",
+  "version": "1.0.0",
+  "description": "car rental service  RESTful API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dhia Eddine Trabelsi",
+  "license": "ISC",
+  "dependencies": {
+    "config": "^3.3.1",
+    "express": "^4.17.1",
+    "mongoose": "^5.9.10"
+  }
+}
