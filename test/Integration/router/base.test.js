@@ -102,6 +102,11 @@ describe('/api/base', () => {
 
     describe('POST /', () => {
 
+        it('should return 400 if invalid token given', async () => {
+            const result = await request(server).post('/api/base/').set('x-auth-token', null).send();
+            expect(result.status).toBe(400);
+        });
+
         it('should return 401 if user not logged in', async () => {
             const result = await request(server).post('/api/base/');
             expect(result.status).toBe(401);
@@ -165,4 +170,78 @@ describe('/api/base', () => {
         });
 
     });
+
+    describe('PUT /:id', async () => {
+
+        it('should return 401 if user not logged in', async () => {
+            const id = mongoose.Types.ObjectId();
+            const result = await request(server).put('/api/base/' + id).send();
+            expect(result.status).toBe(401);
+        });
+
+        it('should return 400 if invalid token given', async () => {
+            const id = mongoose.Types.ObjectId();
+            const result = await request(server).put('/api/base/' + id).set('x-auth-token', null).send();
+            expect(result.status).toBe(400);
+        });
+
+        it('should return 403 if user not admin', async () => {
+            const id = mongoose.Types.ObjectId();
+            const result = await request(server).put('/api/base/' + id).set('x-auth-token', token).send();
+            expect(result.status).toBe(403);
+        });
+
+        it('should return 400 if data given', async () => {
+            const id = mongoose.Types.ObjectId();
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const result = await request(server).put('/api/base/' + id).set('x-auth-token', token).send({});
+            expect(result.status).toBe(400);
+        });
+
+        it('should return 400 if invalid id given', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const result = await request(server).put('/api/base/+').set('x-auth-token', token).send();
+            expect(result.status).toBe(400);
+        });
+
+        it('should return 404 if base with the given id wasnt found', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const id = mongoose.Types.ObjectId();
+            const base = {
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            };
+            const result = await request(server).put('/api/base/' + id).set('x-auth-token', token).send(base);
+            expect(result.status).toBe(404);
+        });
+
+
+
+        it('should return 200 if valid request', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const base = {
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            };
+            const response = await new Base(base).save();
+            base.city = 'modified city';
+            const result = await request(server).put('/api/base/' + response._id).set('x-auth-token', token).send(base);
+            expect(result.status).toBe(200);
+        });
+
+
+        //  should save the changes if valid request
+        //  should return the modified data
+    });
+
 });

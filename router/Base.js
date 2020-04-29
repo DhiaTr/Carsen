@@ -40,4 +40,30 @@ router.post('/', [auth, admin], async (req, res) => {
     res.send(await base.save());
 });
 
+
+router.put('/:id', [auth, admin], async (req, res) => {
+
+    let result = mongoose.Types.ObjectId.isValid(req.params.id);
+    if (!result) return res.status(400).send('invalid id given');
+
+    const { error } = validateBase(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    let base = await Base.findById(req.params.id);
+    if (!base) return res.status(404).send('base not found!');
+
+    base = await Base.findByIdAndUpdate(req.params.id, {
+        B_Name: req.params.B_Name,
+        Region: req.params.Region,
+        city: req.params.city,
+        adress: req.params.adress,
+        phone: req.params.phone
+    }, {
+        new: true
+    })
+
+    res.send(base);
+
+});
+
 module.exports = router;
