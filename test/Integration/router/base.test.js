@@ -221,8 +221,6 @@ describe('/api/base', () => {
             expect(result.status).toBe(404);
         });
 
-
-
         it('should return 200 if valid request', async () => {
             const agent = new Agent({ isAdmin: true });
             token = agent.generateAuthToken();
@@ -239,8 +237,40 @@ describe('/api/base', () => {
             expect(result.status).toBe(200);
         });
 
+        it('should save the changes if valid request', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const base = {
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            };
+            const response = await new Base(base).save();
+            base.city = 'modified city';
+            await request(server).put('/api/base/' + response._id).set('x-auth-token', token).send(base);
+            const result = await Base.findById(response._id);
+            expect(result).toHaveProperty('city', 'modified city');
+        });
 
-        //  should save the changes if valid request
+        it('should return the modified data if valid request', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const base = {
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            };
+            const response = await new Base(base).save();
+            base.city = 'modified city';
+            const result = await request(server).put('/api/base/' + response._id).set('x-auth-token', token).send(base);
+            expect(result.body).toHaveProperty('city', 'modified city');
+        });
+
+
         //  should return the modified data
     });
 

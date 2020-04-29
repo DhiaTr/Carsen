@@ -53,11 +53,11 @@ router.put('/:id', [auth, admin], async (req, res) => {
     if (!base) return res.status(404).send('base not found!');
 
     base = await Base.findByIdAndUpdate(req.params.id, {
-        B_Name: req.params.B_Name,
-        Region: req.params.Region,
-        city: req.params.city,
-        adress: req.params.adress,
-        phone: req.params.phone
+        B_Name: req.body.B_Name,
+        Region: req.body.Region,
+        city: req.body.city,
+        adress: req.body.adress,
+        phone: req.body.phone
     }, {
         new: true
     })
