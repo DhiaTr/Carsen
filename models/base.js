@@ -38,7 +38,7 @@ const Base = mongoose.model('Base', schema);
 
 function validateBase(Base) {
     const schema = {
-        b_Name: Joi.string().min(10).max(150).required(),
+        B_Name: Joi.string().min(5).max(150).required(),
         Region: Joi.string().min(5).max(100).required(),
         city: Joi.string().min(5).max(100).required(),
         adress: Joi.string().min(20).max(255).required(),

@@ -25,7 +25,7 @@ describe('/api/base', () => {
         });
 
         it('should return all the bases if valid request', async () => {
-            Base.collection.insertMany([
+            await Base.collection.insertMany([
                 {
                     B_Name: 'Base1',
                     Region: 'Region1',
@@ -71,8 +71,98 @@ describe('/api/base', () => {
             expect(result.status).toBe(404);
         });
 
-        //should return 200 if valid request
-        //should return the requested base if valid request
+        it('should return 200 if valid request', async () => {
+            const base = new Base({
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            });
+            await base.save();
+            const result = await request(server).get('/api/base/' + base._id).set('x-auth-token', token);
+            expect(result.status).toBe(200);
+        });
+
+        it('should return 200 if valid request', async () => {
+            const base = new Base({
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            });
+            await base.save();
+            const result = await request(server).get('/api/base/' + base._id).set('x-auth-token', token);
+            console.log(base._id.toString());
+            expect(result.body).toHaveProperty('_id', base._id.toString());
+        });
+
     });
 
+    describe('POST /', () => {
+
+        it('should return 401 if user not logged in', async () => {
+            const result = await request(server).post('/api/base/');
+            expect(result.status).toBe(401);
+        });
+
+        it('should return 403 if user not an admin', async () => {
+            const result = await request(server).post('/api/base/').set('x-auth-token', token).send();
+            expect(result.status).toBe(403);
+        });
+
+        it('should return 400 if invalid request', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const result = await request(server).post('/api/base/').set('x-auth-token', token).send({});
+            expect(result.status).toBe(400);
+        });
+
+        it('should return 200 if valid request', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const base = {
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            };
+            const result = await request(server).post('/api/base/').set('x-auth-token', token).send(base);
+            expect(result.status).toBe(200);
+        });
+
+        it('should return save the data to the DB if valid request', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const base = {
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            };
+            await request(server).post('/api/base/').set('x-auth-token', token).send(base);
+            const result = await Base.findOne({ B_Name: base.B_Name, adress: base.adress, phone: base.phone });
+            expect(result).toBeTruthy();
+        });
+
+        it('should return the data if valid request', async () => {
+            const agent = new Agent({ isAdmin: true });
+            token = agent.generateAuthToken();
+            const base = {
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            };
+            const result = await request(server).post('/api/base/').set('x-auth-token', token).send(base);
+
+            expect(Object.keys(result.body)).toEqual(
+                expect.arrayContaining(['B_Name', 'Region', 'city', 'adress', 'phone']));
+        });
+
+    });
 });
