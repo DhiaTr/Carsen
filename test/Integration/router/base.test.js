@@ -2,14 +2,30 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const { Base } = require('../../../models/base');
 const { Agent } = require('../../../models/agent');
+
 let server;
-let token
+let token;
+let base;
+let id;
 
 describe('/api/base', () => {
 
     beforeEach(() => {
         server = require('../../../index');
-        token = new Agent().generateAuthToken();
+
+        agent = new Agent({ isAdmin: true });
+        token = agent.generateAuthToken();
+
+        baseData = {
+            B_Name: 'Base1',
+            Region: 'Region1',
+            city: 'city1',
+            adress: 'Street, New York, NY 10030',
+            phone: '12345678'
+        };
+
+        base = new Base(baseData);
+        id = base._id;
     });
 
     afterEach(async () => {
@@ -20,8 +36,12 @@ describe('/api/base', () => {
 
     describe('GET /', () => {
 
+        const exec = async () => {
+            return await request(server).get('/api/base').set('x-auth-token', token);
+        }
+
         it('should return 200 if valid request', async () => {
-            const result = await request(server).get('/api/base').set('x-auth-token', token);
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
@@ -41,14 +61,15 @@ describe('/api/base', () => {
                     phone: '12345678'
                 }
             ]);
-            const result = await request(server).get('/api/base').set('x-auth-token', token);
+            const result = await exec();
             expect(result.body.length).toBe(2);
             expect(result.body.some(base => base.B_Name === 'Base1')).toBeTruthy();
             expect(result.body.some(base => base.B_Name === 'Base2')).toBeTruthy();
         });
 
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).get('/api/base');
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
@@ -56,46 +77,36 @@ describe('/api/base', () => {
 
     describe('GET /:id', () => {
 
+        const exec = async () => {
+            return await request(server).get('/api/base/' + id).set('x-auth-token', token);
+        }
+
         it('should return 400 if invalid id', async () => {
-            const result = await request(server).get('/api/base/1').set('x-auth-token', token);
+            id = 1;
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).get('/api/base');
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 404 if requested base dosent exist', async () => {
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).get('/api/base/' + id).set('x-auth-token', token);
+            const result = await exec();
             expect(result.status).toBe(404);
         });
 
         it('should return 200 if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const result = await request(server).get('/api/base/' + base._id).set('x-auth-token', token);
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should return 200 if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const result = await request(server).get('/api/base/' + base._id).set('x-auth-token', token);
-            console.log(base._id.toString());
+            const result = await exec();
             expect(result.body).toHaveProperty('_id', base._id.toString());
         });
 
@@ -103,69 +114,48 @@ describe('/api/base', () => {
 
     describe('POST /', () => {
 
+        const exec = async () => {
+            return await request(server).post('/api/base/').set('x-auth-token', token).send(baseData);
+        };
+
         it('should return 400 if invalid token given', async () => {
-            const result = await request(server).post('/api/base/').set('x-auth-token', null).send();
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).post('/api/base/');
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 403 if user not an admin', async () => {
-            const result = await request(server).post('/api/base/').set('x-auth-token', token).send();
+            agent.isAdmin = false;
+            token = agent.generateAuthToken();
+            const result = await exec();
             expect(result.status).toBe(403);
         });
 
         it('should return 400 if invalid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const result = await request(server).post('/api/base/').set('x-auth-token', token).send({});
+            baseData = {};
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 200 if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const result = await request(server).post('/api/base/').set('x-auth-token', token).send(base);
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should return save the data to the DB if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            await request(server).post('/api/base/').set('x-auth-token', token).send(base);
+            await exec();
             const result = await Base.findOne({ B_Name: base.B_Name, adress: base.adress, phone: base.phone });
             expect(result).toBeTruthy();
         });
 
         it('should return the data if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const result = await request(server).post('/api/base/').set('x-auth-token', token).send(base);
-
+            const result = await exec();
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['B_Name', 'Region', 'city', 'adress', 'phone']));
         });
@@ -174,100 +164,65 @@ describe('/api/base', () => {
 
     describe('PUT /:id', () => {
 
+        const exec = async () => {
+            return await request(server).put('/api/base/' + id).set('x-auth-token', token).send(baseData);
+        }
+
         it('should return 401 if user not logged in', async () => {
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).put('/api/base/' + id).send();
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 400 if invalid token given', async () => {
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).put('/api/base/' + id).set('x-auth-token', null).send();
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 403 if user not admin', async () => {
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).put('/api/base/' + id).set('x-auth-token', token).send();
+            agent.isAdmin = false;
+            token = agent.generateAuthToken();
+            const result = await exec();
             expect(result.status).toBe(403);
         });
 
         it('should return 400 if invalid data given', async () => {
-            const id = mongoose.Types.ObjectId();
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const result = await request(server).put('/api/base/' + id).set('x-auth-token', token).send({});
+            baseData = {};
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 400 if invalid id given', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const result = await request(server).put('/api/base/+').set('x-auth-token', token).send();
+            id = '1';
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 404 if base with the given id wasnt found', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const id = mongoose.Types.ObjectId();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const result = await request(server).put('/api/base/' + id).set('x-auth-token', token).send(base);
+            const result = await exec();
             expect(result.status).toBe(404);
         });
 
         it('should return 200 if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const response = await new Base(base).save();
-            base.city = 'modified city';
-            const result = await request(server).put('/api/base/' + response._id).set('x-auth-token', token).send(base);
+            await base.save();
+            baseData.city = 'modified city';
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should save the changes if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const response = await new Base(base).save();
-            base.city = 'modified city';
-            await request(server).put('/api/base/' + response._id).set('x-auth-token', token).send(base);
-            const result = await Base.findById(response._id);
+            await base.save();
+            baseData.city = 'modified city';
+            await exec();
+            const result = await Base.findById(base._id);
             expect(result).toHaveProperty('city', 'modified city');
         });
 
         it('should return the modified data if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const response = await new Base(base).save();
-            base.city = 'modified city';
-            const result = await request(server).put('/api/base/' + response._id).set('x-auth-token', token).send(base);
+            await base.save();
+            baseData.city = 'modified city';
+            const result = await exec();
             expect(result.body).toHaveProperty('city', 'modified city');
         });
 
@@ -276,83 +231,57 @@ describe('/api/base', () => {
 
     describe('DELETE /:id', () => {
 
+        const exec = async () => {
+            return await request(server).delete('/api/base/' + id).set('x-auth-token', token).send();
+        }
+
         it('should return 401 if user not logged in', async () => {
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).delete('/api/base/' + id).send();
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
 
         it('should return 400 if invalid token given', async () => {
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).delete('/api/base/' + id).set('x-auth-token', null).send();
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 403 if user not admin', async () => {
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).delete('/api/base/' + id).set('x-auth-token', token).send();
+            agent.isAdmin = false;
+            token = agent.generateAuthToken();
+            const result = await exec();
             expect(result.status).toBe(403);
         });
 
         it('should return 400 if invalid id given', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const result = await request(server).delete('/api/base/1').set('x-auth-token', token).send();
+            id = '1';
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 404 if base with the given id wasnt found', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).delete('/api/base/' + id).set('x-auth-token', token).send();
+            const result = await exec();
             expect(result.status).toBe(404);
         });
 
         it('should return 200 if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const response = await new Base(base).save();
-            const result = await request(server).delete('/api/base/' + response._id).set('x-auth-token', token).send();
+            await base.save();
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('data shouldn\'t exist in db after successful request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const response = await new Base(base).save();
-            await request(server).delete('/api/base/' + response._id).set('x-auth-token', token).send();
-            const result = await Base.findById(response._id);
+            await base.save();
+            await exec();
+            const result = await Base.findById(id);
             expect(result).not.toBeTruthy();
         });
 
         it('should return the deleted item if valid request', async () => {
-            const agent = new Agent({ isAdmin: true });
-            token = agent.generateAuthToken();
-            const base = {
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            };
-            const response = await new Base(base).save();
-            const result = await request(server).delete('/api/base/' + response._id).set('x-auth-token', token).send();
+            await base.save();
+            const result = await request(server).delete('/api/base/' + id).set('x-auth-token', token).send();
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['_id', 'B_Name', 'Region', 'city', 'adress', 'phone']));
         });
