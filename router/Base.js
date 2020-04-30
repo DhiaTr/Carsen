@@ -66,4 +66,17 @@ router.put('/:id', [auth, admin], async (req, res) => {
 
 });
 
+
+router.delete('/:id', [auth, admin], async (req, res) => {
+
+    let result = mongoose.Types.ObjectId.isValid(req.params.id);
+    if (!result) return res.status(400).send('invalid id given');
+
+    let base = await Base.findById(req.params.id);
+    if (!base) return res.status(404).send('base not found!');
+
+    result = await Base.findByIdAndRemove(req.params.id);
+    res.send(result);
+});
+
 module.exports = router;
