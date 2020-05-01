@@ -6,18 +6,24 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const schema = mongoose.Schema({
     ID_Base: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Base'
+        type: new mongoose.Schema({
+            B_Name: {
+                type: String,
+                minlength: 5,
+                maxlength: 150,
+                required: true
+            }
+        })
     },
     FirstName: {
         type: String,
-        minlength: 10,
+        minlength: 5,
         maxlength: 150,
         required: true
     },
     LastName: {
         type: String,
-        minlength: 10,
+        minlength: 5,
         maxlength: 150,
         required: true
     },
