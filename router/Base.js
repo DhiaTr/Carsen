@@ -4,9 +4,6 @@ const mongoose = require('mongoose');
 const { Base, validateBase } = require('../models/base');
 const auth = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
-//should return 200 if request valid
-
-
 
 router.get('/', auth, async (req, res) => {
     return res.send(await Base.find());
@@ -19,8 +16,6 @@ router.get('/:id', auth, async (req, res) => {
 
     const base = await Base.findById(req.params.id);
     if (!base) return res.status(404).send('base not found');
-
-
 
     return res.send(await Base.findById(req.params.id));
 });
