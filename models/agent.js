@@ -33,6 +33,12 @@ const schema = mongoose.Schema({
         maxlength: 12,
         required: true
     },
+    email: {
+        type: String,
+        minlength: 10,
+        maxlength: 100,
+        required: true
+    },
     salary: {
         type: Number,
         required: true
@@ -59,14 +65,15 @@ const Agent = mongoose.model('Agent', schema);
 function validateAgent(Agent) {
     const schema = {
         ID_Base: Joi.objectId(),
-        FirstName: Joi.string().min(10).max(150).required(),
-        LastName: Joi.string().min(10).max(150).required(),
+        FirstName: Joi.string().min(5).max(150).required(),
+        LastName: Joi.string().min(5).max(150).required(),
         phone: Joi.string().min(8).max(12).required(),
+        email: Joi.string().email().min(10).max(100).required(),
         salary: Joi.number().required(),
         hireDate: Joi.date(),
         password: Joi.string().min(5).max(1024).required()
     }
-    return Joi.validate(client, schema);
+    return Joi.validate(Agent, schema);
 }
 
 module.exports.Agent = Agent;
