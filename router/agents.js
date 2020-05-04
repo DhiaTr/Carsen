@@ -61,27 +61,32 @@ router.put('/:id', [auth, admin], async (req, res) => {
     let agent = await Agent.findById(req.params.id);
     if (!agent) return res.status(404).send('agent not found!');
 
-
-    console.log(req.body);
-
-
-    agentData = {
-        ID_Base: { _id: req.body.ID_Base._id, B_Name: req.body.ID_Base.B_Name },
-        FirstName: req.body.FirstName,
-        LastName: req.body.LastName,
-        phone: req.body.phone,
-        email: req.body.email,
-        salary: req.body.salary,
-        password: req.body.password
-    };
     agent = await Agent.findByIdAndUpdate(req.params.id,
-        agentData, {
+        {
+            ID_Base: { _id: req.body.ID_Base._id, B_Name: req.body.ID_Base.B_Name },
+            FirstName: req.body.FirstName,
+            LastName: req.body.LastName,
+            phone: req.body.phone,
+            email: req.body.email,
+            salary: req.body.salary,
+            password: req.body.password
+        }, {
         new: true
     });
-
-
     res.send(await agent.save());
 
+});
+
+router.delete('/:id', [auth, admin], async (req, res) => {
+
+    let result = mongoose.Types.ObjectId.isValid(req.params.id);
+    if (!result) return res.status(400).send('Invalid id provided.');
+
+    let agent = await Agent.findById(req.params.id);
+    if (!agent) return res.status(404).send('agent not found!');
+
+    result = await Agent.findByIdAndDelete(agent._id);
+    res.send(result);
 });
 
 module.exports = router;
