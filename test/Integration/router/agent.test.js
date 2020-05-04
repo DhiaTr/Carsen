@@ -34,7 +34,7 @@ describe('/api/agent', () => {
         });
 
         it('should return the agents if valid request', async () => {
-            const base =new Base({
+            const base = new Base({
                 B_Name: 'Base1',
                 Region: 'Region1',
                 city: 'city1',
@@ -50,7 +50,7 @@ describe('/api/agent', () => {
                 email: 'agent1mail@gmail.com',
                 salary: 1234,
                 password: '123456'
-            },{
+            }, {
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
                 FirstName: 'Agent2',
                 LastName: 'Smith',
@@ -59,7 +59,7 @@ describe('/api/agent', () => {
                 salary: 1425,
                 password: '234567'
             }
-        ]);
+            ]);
             token = new Agent().generateAuthToken();
             const result = await request(server).get('/api/agents').set('x-auth-token', token);
             expect(result.body.length).toBe(2);
@@ -96,7 +96,7 @@ describe('/api/agent', () => {
         });
 
         it('should return 200 if valid request', async () => {
-            const base =new Base({
+            const base = new Base({
                 B_Name: 'Base1',
                 Region: 'Region1',
                 city: 'city1',
@@ -120,7 +120,7 @@ describe('/api/agent', () => {
         });
 
         it('should return the requested agent if valid request', async () => {
-            const base =new Base({
+            const base = new Base({
                 B_Name: 'Base1',
                 Region: 'Region1',
                 city: 'city1',
@@ -141,7 +141,7 @@ describe('/api/agent', () => {
             const token = new Agent().generateAuthToken();
             const result = await request(server).get('/api/agents/' + agent._id).set('x-auth-token', token);
             expect(Object.keys(result.body)).toEqual(
-                expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'salary', 'password']));
+                expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'email', 'salary', 'password']));
         });
 
     })
@@ -191,7 +191,7 @@ describe('/api/agent', () => {
 
         it('should return 400 if user already exists', async () => {
             const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base =new Base({
+            const base = new Base({
                 B_Name: 'Base1',
                 Region: 'Region1',
                 city: 'city1',
@@ -200,7 +200,7 @@ describe('/api/agent', () => {
             });
             await base.save();
             const agent = {
-                ID_Base: { _id: base._id, B_Name: base.B_Name } ,
+                ID_Base: { _id: base._id, B_Name: base.B_Name },
                 FirstName: 'Agent1',
                 LastName: 'Smith',
                 phone: '22556688',
@@ -217,7 +217,7 @@ describe('/api/agent', () => {
 
         it('should return 200 if valid request', async () => {
             const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base =new Base({
+            const base = new Base({
                 B_Name: 'Base1',
                 Region: 'Region1',
                 city: 'city1',
@@ -239,55 +239,55 @@ describe('/api/agent', () => {
 
         });
 
-            it('should return 200 if valid request', async () => {
-                const token = new Agent({ isAdmin: true }).generateAuthToken();
-                const base =new Base({
-                    B_Name: 'Base1',
-                    Region: 'Region1',
-                    city: 'city1',
-                    adress: 'Street, New York, NY 10030',
-                    phone: '12345678'
-                });
-                await base.save();
-                const agent = {
-                    ID_Base: base._id,
-                    FirstName: 'Agent1',
-                    LastName: 'Smith',
-                    phone: '22556688',
-                    email: 'agent1mail@gmail.com',
-                    salary: 1234,
-                    password: '123456'
-                };
-                await request(server).post('/api/agents/').send(agent).set('x-auth-token', token);
-                const result = await Agent.findOne({ email: 'agent1mail@gmail.com' });
-                expect(result).toBeTruthy();
+        it('should return 200 if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const base = new Base({
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
             });
+            await base.save();
+            const agent = {
+                ID_Base: base._id,
+                FirstName: 'Agent1',
+                LastName: 'Smith',
+                phone: '22556688',
+                email: 'agent1mail@gmail.com',
+                salary: 1234,
+                password: '123456'
+            };
+            await request(server).post('/api/agents/').send(agent).set('x-auth-token', token);
+            const result = await Agent.findOne({ email: 'agent1mail@gmail.com' });
+            expect(result).toBeTruthy();
+        });
 
-            it('should return the saved object if valid request', async () => {
-                const token = new Agent({ isAdmin: true }).generateAuthToken();
-                const base =new Base({
-                    B_Name: 'Base1',
-                    Region: 'Region1',
-                    city: 'city1',
-                    adress: 'Street, New York, NY 10030',
-                    phone: '12345678'
-                });
-                await base.save();
-                const agent = {
-                    ID_Base: base._id,
-                    FirstName: 'Agent1',
-                    LastName: 'Smith',
-                    phone: '22556688',
-                    email: 'agent1mail@gmail.com',
-                    salary: 1234,
-                    password: '123456'
-                };
-                const result = await request(server).post('/api/agents/').send(agent).set('x-auth-token', token);
-                expect(Object.keys(result.body)).toEqual(
-                    expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'email', 'salary', 'password']));
+        it('should return the saved object if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const base = new Base({
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
             });
+            await base.save();
+            const agent = {
+                ID_Base: base._id,
+                FirstName: 'Agent1',
+                LastName: 'Smith',
+                phone: '22556688',
+                email: 'agent1mail@gmail.com',
+                salary: 1234,
+                password: '123456'
+            };
+            const result = await request(server).post('/api/agents/').send(agent).set('x-auth-token', token);
+            expect(Object.keys(result.body)).toEqual(
+                expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'email', 'salary', 'password']));
+        });
 
-            // it supposed to crypt the password if valid request
+        // it supposed to crypt the password if valid request
 
     });
 
@@ -309,14 +309,14 @@ describe('/api/agent', () => {
             const result = await request(server).put('/api/agents/1').send({}).set('x-auth-token', token);
             expect(result.status).toBe(403);
         });
-        
+
         it('should return 400 if inavlid id given', async () => {
             const token = new Agent({ isAdmin: true }).generateAuthToken();
             const result = await request(server).put('/api/agents/1').send({}).set('x-auth-token', token);
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('Invalid id provided.');
         });
-        
+
         it('should return 404 if no agent corresponds to the given id', async () => {
             const token = new Agent({ isAdmin: true }).generateAuthToken();
             const id = mongoose.Types.ObjectId();
@@ -327,7 +327,7 @@ describe('/api/agent', () => {
 
         it('should return 200 if valid request', async () => {
             const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base =new Base({
+            const base = new Base({
                 B_Name: 'Base1',
                 Region: 'Region1',
                 city: 'city1',
@@ -345,13 +345,14 @@ describe('/api/agent', () => {
                 password: '123456'
             });
             await agent.save();
-            const result = await request(server).put('/api/agents/' + agent._id).send({}).set('x-auth-token', token);
+            console.log(agent);
+            const result = await request(server).put('/api/agents/' + agent._id).send(agent).set('x-auth-token', token);
             expect(result.status).toBe(200);
         });
 
         it('should save modified agent if valid request', async () => {
             const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base =new Base({
+            const base = new Base({
                 B_Name: 'Base1',
                 Region: 'Region1',
                 city: 'city1',
@@ -372,14 +373,37 @@ describe('/api/agent', () => {
             agent.LastName = 'new LastName';
             await request(server).put('/api/agents/' + agent._id).send(agent).set('x-auth-token', token);
             const result = await Agent.findById(agent._id);
-            console.log(result);
             expect(result).toHaveProperty('LastName', agent.LastName);
         });
 
-        //  should save modified agent in the database if valid request
-        //  should return the modified object
+        it('shoudl return the modified object if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const base = new Base({
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            });
+            await base.save();
+            const agent = new Agent({
+                ID_Base: { _id: base._id, B_Name: base.B_Name },
+                FirstName: 'Agent1',
+                LastName: 'Smith',
+                phone: '22556688',
+                email: 'agent1mail@gmail.com',
+                salary: 1234,
+                password: '123456'
+            });
+            await agent.save();
+            agent.LastName = 'new LastName';
+            const result = await request(server).put('/api/agents/' + agent._id).send(agent).set('x-auth-token', token);
+            expect(Object.keys(result.body)).toEqual(
+                expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'email', 'salary', 'password']));
+        });
+
     });
-        
+
     // DELETE /:id
     //  should return 401 if user not logged in
     //  should return 403 if user not admin
