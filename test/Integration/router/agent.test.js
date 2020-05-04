@@ -2,12 +2,26 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const { Agent } = require('../../../models/agent');
 const { Base } = require('../../../models/base');
-let server;
 
+let server;
+let token;
+let base;
+let agent;
 
 describe('/api/agent', () => {
 
-    beforeEach(() => server = require('../../../index'));
+    beforeEach(() => {
+        agent = new Agent({ isAdmin: true });
+        token = agent.generateAuthToken();
+        base = new Base({
+            B_Name: 'Base1',
+            Region: 'Region1',
+            city: 'city1',
+            adress: 'Street, New York, NY 10030',
+            phone: '12345678'
+        });
+        server = require('../../../index')
+    });
     afterEach(async () => {
         await server.close();
         await Agent.remove({});
@@ -28,19 +42,12 @@ describe('/api/agent', () => {
         });
 
         it('should return 200 if valid request', async () => {
-            token = new Agent().generateAuthToken();
             const result = await request(server).get('/api/agents').set('x-auth-token', token);
             expect(result.status).toBe(200);
         });
 
         it('should return the agents if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
+
             await base.save();
             await Agent.collection.insertMany([{
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -60,7 +67,6 @@ describe('/api/agent', () => {
                 password: '234567'
             }
             ]);
-            token = new Agent().generateAuthToken();
             const result = await request(server).get('/api/agents').set('x-auth-token', token);
             expect(result.body.length).toBe(2);
         });
@@ -81,14 +87,12 @@ describe('/api/agent', () => {
         });
 
         it('should return 400 if invalid id provided', async () => {
-            const token = new Agent().generateAuthToken();
             const result = await request(server).get('/api/agents/1').set('x-auth-token', token);
             expect(result.error.text).toBe('Invalid id provided.');
             expect(result.status).toBe(400);
         });
 
         it('should return 404 if no agent with the given was found', async () => {
-            const token = new Agent().generateAuthToken();
             const id = mongoose.Types.ObjectId();
             const result = await request(server).get('/api/agents/' + id).set('x-auth-token', token);
             expect(result.error.text).toBe('no agent with the given id was found.');
@@ -96,13 +100,6 @@ describe('/api/agent', () => {
         });
 
         it('should return 200 if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -114,19 +111,11 @@ describe('/api/agent', () => {
                 password: '123456'
             });
             await agent.save();
-            const token = new Agent().generateAuthToken();
             const result = await request(server).get('/api/agents/' + agent._id).set('x-auth-token', token);
             expect(result.status).toBe(200);
         });
 
         it('should return the requested agent if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -138,7 +127,6 @@ describe('/api/agent', () => {
                 password: '123456'
             });
             await agent.save();
-            const token = new Agent().generateAuthToken();
             const result = await request(server).get('/api/agents/' + agent._id).set('x-auth-token', token);
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'email', 'salary', 'password']));
@@ -161,19 +149,18 @@ describe('/api/agent', () => {
         });
 
         it('should return 403 if user not admin', async () => {
-            const token = new Agent().generateAuthToken();
+            agent.isAdmin = false;
+            const token = agent.generateAuthToken();
             const result = await request(server).post('/api/agents/').send({}).set('x-auth-token', token);
             expect(result.status).toBe(403);
         });
 
         it('should return 400 if invalid data provided', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
             const result = await request(server).post('/api/agents/').send({}).set('x-auth-token', token);
             expect(result.status).toBe(400);
         });
 
         it('should return 400 if inavlid base given', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
             const baseId = mongoose.Types.ObjectId();
             const agent = {
                 ID_Base: baseId,
@@ -190,14 +177,6 @@ describe('/api/agent', () => {
         });
 
         it('should return 400 if user already exists', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = {
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -216,14 +195,6 @@ describe('/api/agent', () => {
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = {
                 ID_Base: base._id,
@@ -240,14 +211,6 @@ describe('/api/agent', () => {
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = {
                 ID_Base: base._id,
@@ -264,14 +227,6 @@ describe('/api/agent', () => {
         });
 
         it('should return the saved object if valid request', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = {
                 ID_Base: base._id,
@@ -305,20 +260,19 @@ describe('/api/agent', () => {
         });
 
         it('should return 403 if user not admin', async () => {
-            const token = new Agent().generateAuthToken();
+            agent.isAdmin = false;
+            const token = agent.generateAuthToken();
             const result = await request(server).put('/api/agents/1').send({}).set('x-auth-token', token);
             expect(result.status).toBe(403);
         });
 
         it('should return 400 if inavlid id given', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
             const result = await request(server).put('/api/agents/1').send({}).set('x-auth-token', token);
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('Invalid id provided.');
         });
 
         it('should return 404 if no agent corresponds to the given id', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
             const id = mongoose.Types.ObjectId();
             const result = await request(server).put('/api/agents/' + id).send({}).set('x-auth-token', token);
             expect(result.status).toBe(404);
@@ -326,14 +280,6 @@ describe('/api/agent', () => {
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -350,14 +296,6 @@ describe('/api/agent', () => {
         });
 
         it('should save modified agent if valid request', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -376,14 +314,6 @@ describe('/api/agent', () => {
         });
 
         it('shoudl return the modified object if valid request', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -417,7 +347,8 @@ describe('/api/agent', () => {
         });
 
         it('should return 403 if user not admin', async () => {
-            const token = new Agent().generateAuthToken();
+            agent.isAdmin = false;
+            token = agent.generateAuthToken();
             const result = await request(server).delete('/api/agents/1').send().set('x-auth-token', token);
             expect(result.status).toBe(403);
         });
@@ -430,7 +361,6 @@ describe('/api/agent', () => {
         });
 
         it('should return 404 if no agent corresponds to the given id', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
             const id = mongoose.Types.ObjectId();
             const result = await request(server).delete('/api/agents/' + id).send().set('x-auth-token', token);
             expect(result.status).toBe(404);
@@ -438,14 +368,6 @@ describe('/api/agent', () => {
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -462,14 +384,6 @@ describe('/api/agent', () => {
         });
 
         it('the agent with the given id shouldn\'t exist in the db', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -488,14 +402,6 @@ describe('/api/agent', () => {
         });
 
         it('should return the deleted agent data', async () => {
-            const token = new Agent({ isAdmin: true }).generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             const agent = new Agent({
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -512,8 +418,6 @@ describe('/api/agent', () => {
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'email', 'salary', 'password']));
         });
-
-        //  should return the deleted object
 
     });
 });
