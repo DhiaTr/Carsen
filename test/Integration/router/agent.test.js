@@ -53,7 +53,7 @@ describe('/api/agent', () => {
             },{
                 ID_Base: { _id: base._id, B_Name: base.B_Name },
                 FirstName: 'Agent2',
-                Lastname: 'Smith',
+                LastName: 'Smith',
                 phone: '33669955',
                 email: 'agent1mail@gmail.com',
                 salary: 1425,
@@ -166,7 +166,7 @@ describe('/api/agent', () => {
             expect(result.status).toBe(403);
         });
 
-        it('should return 403 if user not admin', async () => {
+        it('should return 400 if invalid data provided', async () => {
             const token = new Agent({ isAdmin: true }).generateAuthToken();
             const result = await request(server).post('/api/agents/').send({}).set('x-auth-token', token);
             expect(result.status).toBe(400);
@@ -287,18 +287,99 @@ describe('/api/agent', () => {
                     expect.arrayContaining(['ID_Base', 'FirstName', 'LastName', 'phone', 'email', 'salary', 'password']));
             });
 
+            // it supposed to crypt the password if valid request
+
     });
 
-    // PUT /:id
-    //  should return 401 if user not logged in
-    //  should return 403 if user not admin
-    //  should return 400 if invalid token provided
-    //  should return 400 if invalid id provided
-    //  should return 404 if no agent with the given id found
-    //  should return 200 if valid request
-    //  should save modified agent in the database if valid request
-    //  should return the modified object
+    describe('PUT /:id', () => {
 
+        it('should return 401 if user not logged in', async () => {
+            const result = await request(server).put('/api/agents/1').send({});
+            expect(result.status).toBe(401);
+        });
+
+        it('should return 400 if invalid token provided', async () => {
+            const result = await request(server).put('/api/agents/1').send({}).set('x-auth-token', null);
+            expect(result.status).toBe(400);
+            expect(result.error.text).toBe('invalid Token.');
+        });
+
+        it('should return 403 if user not admin', async () => {
+            const token = new Agent().generateAuthToken();
+            const result = await request(server).put('/api/agents/1').send({}).set('x-auth-token', token);
+            expect(result.status).toBe(403);
+        });
+        
+        it('should return 400 if inavlid id given', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const result = await request(server).put('/api/agents/1').send({}).set('x-auth-token', token);
+            expect(result.status).toBe(400);
+            expect(result.error.text).toBe('Invalid id provided.');
+        });
+        
+        it('should return 404 if no agent corresponds to the given id', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const id = mongoose.Types.ObjectId();
+            const result = await request(server).put('/api/agents/' + id).send({}).set('x-auth-token', token);
+            expect(result.status).toBe(404);
+            expect(result.error.text).toBe('agent not found!');
+        });
+
+        it('should return 200 if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const base =new Base({
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            });
+            await base.save();
+            const agent = new Agent({
+                ID_Base: { _id: base._id, B_Name: base.B_Name },
+                FirstName: 'Agent1',
+                LastName: 'Smith',
+                phone: '22556688',
+                email: 'agent1mail@gmail.com',
+                salary: 1234,
+                password: '123456'
+            });
+            await agent.save();
+            const result = await request(server).put('/api/agents/' + agent._id).send({}).set('x-auth-token', token);
+            expect(result.status).toBe(200);
+        });
+
+        it('should save modified agent if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const base =new Base({
+                B_Name: 'Base1',
+                Region: 'Region1',
+                city: 'city1',
+                adress: 'Street, New York, NY 10030',
+                phone: '12345678'
+            });
+            await base.save();
+            const agent = new Agent({
+                ID_Base: { _id: base._id, B_Name: base.B_Name },
+                FirstName: 'Agent1',
+                LastName: 'Smith',
+                phone: '22556688',
+                email: 'agent1mail@gmail.com',
+                salary: 1234,
+                password: '123456'
+            });
+            await agent.save();
+            agent.LastName = 'new LastName';
+            await request(server).put('/api/agents/' + agent._id).send(agent).set('x-auth-token', token);
+            const result = await Agent.findById(agent._id);
+            console.log(result);
+            expect(result).toHaveProperty('LastName', agent.LastName);
+        });
+
+        //  should save modified agent in the database if valid request
+        //  should return the modified object
+    });
+        
     // DELETE /:id
     //  should return 401 if user not logged in
     //  should return 403 if user not admin

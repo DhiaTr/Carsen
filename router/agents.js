@@ -53,4 +53,30 @@ router.post('/', [auth, admin], async (req, res) => {
     res.send(await agent.save());
 });
 
+router.put('/:id', [auth, admin], async (req, res) => {
+
+    const result = mongoose.Types.ObjectId.isValid(req.params.id);
+    if(!result) return res.status(400).send('Invalid id provided.');
+    
+    let agent = await Agent.findById(req.params.id);
+    if (!agent) return res.status(404).send('agent not found!');
+
+    agent = await Agent.findByIdAndUpdate( req.params.id,
+        {
+            ID_Base: { _id: req.body.ID_Base._id, B_Name: req.body.ID_Base.B_Name },
+            FirstName: req.body.FirstName,
+            LastName: req.body.LastName,
+            phone: req.body.phone,
+            email: req.body.email,
+            salary: req.body.salary,
+            password: req.body.password
+        },{  
+            new: true
+        });
+    console.log(req.body.ID_Base._id);
+
+    res.send(await agent.save());
+
+});
+
 module.exports = router;
