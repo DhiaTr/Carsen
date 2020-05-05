@@ -213,6 +213,7 @@ describe('/api/agent', () => {
         });
 
         // it supposed to crypt the password if valid request
+        // should return a token in the header
 
     });
 

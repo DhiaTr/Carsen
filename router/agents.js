@@ -48,9 +48,10 @@ router.post('/', [auth, admin], async (req, res) => {
     });
     const salt = await bcrypt.genSalt(10);
     agent.password = await bcrypt.hash(req.body.password, salt);
+    const token = agent.generateAuthToken();
 
 
-    res.send(await agent.save());
+    res.header('x-auth-token', token).send(await agent.save());
 });
 
 router.put('/:id', [auth, admin], async (req, res) => {

@@ -40,6 +40,7 @@ const Client = mongoose.model('Client', schema);
 
 function validateClient(client) {
     const schema = {
+        CIN: Joi.string().min(8).max(8).required(),
         FirstName: Joi.string().min(10).max(150).required(),
         LastName: Joi.string().min(10).max(150).required(),
         phone: Joi.string().min(8).max(12).required(),

@@ -2,11 +2,13 @@ const express = require('express');
 const app = express();
 const Base = require('./router/Base');
 const agents = require('./router/agents');
+const cars = require('./router/car');
 
 app.use(express.json());
 
 require('./startup/db')();
 require('./startup/config')();
+app.use('/api/cars', cars);
 app.use('/api/base', Base);
 app.use('/api/agents', agents);
 
