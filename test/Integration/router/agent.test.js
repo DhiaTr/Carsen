@@ -31,13 +31,15 @@ describe('/api/agent', () => {
             password: '123456'
         }
         agent = new Agent(agentData);
-        server = require('../../../index')
+        server = require('../../../index');
     });
+
     afterEach(async () => {
         await server.close();
         await Agent.remove({});
         await Base.remove({});
-    })
+    });
+
     afterAll(() => mongoose.disconnect());
 
     describe('GET /', () => {

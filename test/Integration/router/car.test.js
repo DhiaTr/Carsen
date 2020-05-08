@@ -188,6 +188,7 @@ describe('/api/car', () => {
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Base', 'Mark', 'Model', 'Registration_Number', 'production_Year', 'Rent_Price', 'Category']));
         });
+        // should return 403 if user not admin
 
     });
 
@@ -253,6 +254,8 @@ describe('/api/car', () => {
             const result = await exec();
             expect(result.body).toHaveProperty('Mark', carData.Mark);
         });
+
+        // should return 403 if user not admin
     });
 
     describe('DELETE /:id', () => {
@@ -309,6 +312,7 @@ describe('/api/car', () => {
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Base', 'Mark', 'Model', 'Registration_Number', 'production_Year', 'Rent_Price', 'Category']));
         });
+        // should return 403 if user not admin
     });
 
 });

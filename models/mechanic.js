@@ -9,13 +9,13 @@ const schema = mongoose.Schema({
     },
     FirstName: {
         type: String,
-        minlength: 10,
+        minlength: 5,
         maxlength: 150,
         required: true
     },
     LastName: {
         type: String,
-        minlength: 10,
+        minlength: 5,
         maxlength: 150,
         required: true
     },
@@ -40,8 +40,8 @@ const Mechanic = mongoose.model('Mechanic', schema);
 function validateMechanic(Mechanic) {
     const schema = {
         ID_Base: Joi.objectId(),
-        FirstName: Joi.string().min(10).max(150).required(),
-        LastName: Joi.string().min(10).max(150).required(),
+        FirstName: Joi.string().min(5).max(150).required(),
+        LastName: Joi.string().min(5).max(150).required(),
         phone: Joi.string().min(8).max(12).required(),
         salary: Joi.number().required(),
         hireDate: Joi.date(),
