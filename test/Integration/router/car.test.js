@@ -3,11 +3,36 @@ const mongoose = require('mongoose');
 const { Agent } = require('../../../models/agent');
 const { Base } = require('../../../models/base');
 const { Car } = require('../../../models/car');
-
+let token;
+let base;
+let carData;
+let car;
+let id;
 
 describe('/api/car', () => {
 
-    beforeEach(() => { server = require('../../../index') });
+    beforeEach(() => {
+        server = require('../../../index');
+        token = new Agent().generateAuthToken();
+        base = new Base({
+            B_Name: 'Base1',
+            Region: 'Region1',
+            city: 'city1',
+            adress: 'Street, New York, NY 10030',
+            phone: '12345678'
+        });
+        carData = {
+            ID_Base: base._id,
+            Mark: 'Mark1',
+            Model: 'Model1',
+            Registration_Number: '123',
+            production_Year: '1234',
+            Rent_Price: 50,
+            Category: 'category1'
+        }
+        car = new Car(carData);
+        id = car._id;
+    });
     afterEach(async () => {
         await server.close();
         await Agent.remove({});
@@ -18,30 +43,28 @@ describe('/api/car', () => {
 
     describe('GET /', () => {
 
+        const exec = async () => {
+            return await request(server).get('/api/cars/').set('x-auth-token', token).send();
+        }
+
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).get('/api/cars/');
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 400 if invalid token', async () => {
-            const result = await request(server).get('/api/cars/').set('x-auth-token', null);
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).get('/api/cars/').set('x-auth-token', token);
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should return the cars if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
             await Car.collection.insertMany([{
                 ID_Base: base._id,
@@ -61,83 +84,53 @@ describe('/api/car', () => {
                 Category: 'category2'
             }
             ]);
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).get('/api/cars/').set('x-auth-token', token);
+            const result = await exec();
             expect(result.body.length).toBe(2);
         });
     });
 
     describe('GET /:id', () => {
 
+        const exec = async () => {
+            return await request(server).get('/api/cars/' + id).set('x-auth-token', token).send();
+        }
+
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).get('/api/cars/1');
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 400 if invalid token', async () => {
-            const result = await request(server).get('/api/cars/1').set('x-auth-token', null);
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 400 if invalid id provided', async () => {
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).get('/api/cars/1').set('x-auth-token', token);
+            id = '1';
+            const result = await exec();
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('Invalid id provided.');
         });
 
         it('should return 404 if no car with the given id exists', async () => {
-            const token = new Agent().generateAuthToken();
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).get('/api/cars/' + id).set('x-auth-token', token);
+            id = mongoose.Types.ObjectId();
+            const result = await exec();
             expect(result.status).toBe(404);
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const car = new Car({
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            });
             await car.save();
-            const result = await request(server).get('/api/cars/' + car._id).set('x-auth-token', token);
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should return the requested car if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const car = new Car({
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            });
             await car.save();
-            const result = await request(server).get('/api/cars/' + car._id).set('x-auth-token', token);
+            const result = await exec();
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Base', 'Mark', 'Model', 'Registration_Number', 'production_Year', 'Rent_Price', 'Category']));
         });
@@ -146,107 +139,52 @@ describe('/api/car', () => {
 
     describe('POST /', () => {
 
+        const exec = async () => {
+            return await request(server).post('/api/cars/').set('x-auth-token', token).send(carData);
+        }
+
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).post('/api/cars/').send();
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 400 if invalid token provided', async () => {
-            const result = await request(server).post('/api/cars/').set('x-auth-token', null).send();
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('invalid Token.');
         });
 
         it('shoudl return 400 if invalid data given', async () => {
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).post('/api/cars/').set('x-auth-token', token).send({});
+            carData = {};
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 400 if inavlid base given', async () => {
-            const id = mongoose.Types.ObjectId();
-            const car = {
-                ID_Base: id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).post('/api/cars/').set('x-auth-token', token).send(car);
+            carData.ID_Base = mongoose.Types.ObjectId();
+            const result = await exec();
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('invalid base id.');
         });
 
         it('should return 200 if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const car = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).post('/api/cars/').set('x-auth-token', token).send(car);
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should return save the car if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const car = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const token = new Agent().generateAuthToken();
-            await request(server).post('/api/cars/').set('x-auth-token', token).send(car);
-            const result = await Car.findOne({ Registration_Number: car.Registration_Number });
+            await exec();
+            const result = await Car.findOne({ Registration_Number: carData.Registration_Number });
             expect(result).toBeTruthy();
         });
 
         it('should return 200 if valid request', async () => {
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const car = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).post('/api/cars/').set('x-auth-token', token).send(car);
+            const result = await exec();
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Base', 'Mark', 'Model', 'Registration_Number', 'production_Year', 'Rent_Price', 'Category']));
         });
@@ -255,235 +193,119 @@ describe('/api/car', () => {
 
     describe('PUT /:id', () => {
 
+        const exec = async () => {
+            return await request(server).put('/api/cars/' + id).set('x-auth-token', token).send(carData);
+        }
+
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).put('/api/cars/1').send();
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 400 if invalid token', async () => {
-            const result = await request(server).put('/api/cars/1').set('x-auth-token', null);
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 400 if invalid id provided', async () => {
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).put('/api/cars/1').set('x-auth-token', token);
+            id = '1';
+            const result = await exec();
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('Invalid id provided.');
         });
 
         it('should return 404 if no car with the given id was found', async () => {
-            const token = new Agent().generateAuthToken();
-            const id = mongoose.Types.ObjectId();
-            const result = await request(server).put('/api/cars/' + id).set('x-auth-token', token);
+            id = mongoose.Types.ObjectId();
+            const result = await exec();
             expect(result.status).toBe(404);
         });
 
         it('should return 400 if invalid data provided', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const carData = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const car = new Car(carData);
             await car.save();
-            const result = await request(server).put('/api/cars/' + car._id).set('x-auth-token', token).send({});
+            carData = {};
+            const result = await exec();
             expect(result.status).toBe(400);
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const carData = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const car = new Car(carData);
             await car.save();
-            const result = await request(server).put('/api/cars/' + car._id).set('x-auth-token', token).send(carData);
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should save the changes if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const carData = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const car = new Car(carData);
             await car.save();
             carData.Mark = 'Modified Mark';
-            await request(server).put('/api/cars/' + car._id).set('x-auth-token', token).send(carData);
-
+            await exec();
             const result = await Car.findById(car._id);
             expect(result).toHaveProperty('Mark', carData.Mark);
         });
 
         it('should return the modified car if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const carData = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const car = new Car(carData);
             await car.save();
             carData.Mark = 'Modified Mark';
-            const result = await request(server).put('/api/cars/' + car._id).set('x-auth-token', token).send(carData);
+            const result = await exec();
             expect(result.body).toHaveProperty('Mark', carData.Mark);
         });
     });
 
     describe('DELETE /:id', () => {
 
+        const exec = async () => {
+            return await request(server).delete('/api/cars/' + id).set('x-auth-token', token).send();
+        }
+
         it('should return 401 if user not logged in', async () => {
-            const result = await request(server).delete('/api/cars/1').send();
+            token = '';
+            const result = await exec();
             expect(result.status).toBe(401);
         });
 
         it('should return 400 if invalid token provided', async () => {
-            const result = await request(server).delete('/api/cars/1').set('x-auth-token', null).send();
+            token = null;
+            const result = await exec();
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('invalid Token.');
         });
 
         it('should return 400 if invalid id given', async () => {
-            const token = new Agent().generateAuthToken();
-            const result = await request(server).delete('/api/cars/1').set('x-auth-token', token).send();
+            id = '1';
+            const result = await exec();
             expect(result.status).toBe(400);
             expect(result.error.text).toBe('Invalid id provided.');
         });
 
         it('should return 404 if no car with the given id was found', async () => {
-            const token = new Agent().generateAuthToken();
             const id = mongoose.Types.ObjectId();
-            const result = await request(server).delete('/api/cars/' + id).set('x-auth-token', token);
+            const result = await exec();
             expect(result.status).toBe(404);
         });
 
         it('should return 200 if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const carData = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const car = new Car(carData);
             await car.save();
-            const result = await request(server).delete('/api/cars/' + car._id).set('x-auth-token', token).send();
+            const result = await exec();
             expect(result.status).toBe(200);
         });
 
         it('should be deleted from the db if valid request', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const carData = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const car = new Car(carData);
             await car.save();
-            await request(server).delete('/api/cars/' + car._id).set('x-auth-token', token).send();
+            await exec();
             const result = await Car.findById(car._id);
             expect(result).not.toBeTruthy();
         });
 
         it('should return the deleted car', async () => {
-            const token = new Agent().generateAuthToken();
-            const base = new Base({
-                B_Name: 'Base1',
-                Region: 'Region1',
-                city: 'city1',
-                adress: 'Street, New York, NY 10030',
-                phone: '12345678'
-            });
             await base.save();
-            const carData = {
-                ID_Base: base._id,
-                Mark: 'Mark1',
-                Model: 'Model1',
-                Registration_Number: '123',
-                production_Year: '1234',
-                Rent_Price: 50,
-                Category: 'category1'
-            }
-            const car = new Car(carData);
             await car.save();
-            const result = await request(server).delete('/api/cars/' + car._id).set('x-auth-token', token).send();
+            const result = await exec();
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Base', 'Mark', 'Model', 'Registration_Number', 'production_Year', 'Rent_Price', 'Category']));
         });
