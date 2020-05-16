@@ -258,7 +258,7 @@ describe('/api/mechanic', () => {
             expect(result.status).toBe(200);
         });
 
-        it('should return 200 if valid request', async () => {
+        it('should save the changes in the db if valid request', async () => {
             await base.save();
             await mechanic.save();
             mechanicData.FirstName = 'changed first name';
@@ -267,7 +267,7 @@ describe('/api/mechanic', () => {
             expect(result).toHaveProperty('FirstName', mechanicData.FirstName);
         });
 
-        it('should return 200 if valid request', async () => {
+        it('should return the modified mechanic if valid request', async () => {
             await base.save();
             await mechanic.save();
             mechanicData.FirstName = 'changed first name';

@@ -307,20 +307,225 @@ describe('/api/repair', () => {
             const result = await request(server).put('/api/repairs/' + repair._id).set('x-auth-token', token).send({});
             expect(result.status).toBe(400);
         });
-        //  should return 400 if invalid data given
-        //  should return 400 if invalid mechanic given
-        //  should return 400 if invalid car given
-        //  should return 200 if valid request
-        //  should save the changes in the db if valid request
-        //  should return the modified repair if valid request
 
+        it('should return 400 if invalid mechanic given', async () => {
+            const token = new Agent().generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const repairData = {
+                ID_Mechanic: ID_mock,
+                ID_Car: ID_mock,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            }
+            const repair = new Repair(repairData);
+            await repair.save();
+            const result = await request(server).put('/api/repairs/' + repair._id).set('x-auth-token', token).send(repairData);
+            expect(result.status).toBe(400);
+        });
+
+        it('should return 400 if invalid car given', async () => {
+            const token = new Agent().generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const mechanic = new Mechanic({
+                ID_Base: ID_mock,
+                FirstName: 'FirstName M2',
+                LastName: 'LastName M2',
+                phone: '22445588',
+                salary: 777
+            });
+            await mechanic.save();
+            const repairData = {
+                ID_Mechanic: mechanic._id,
+                ID_Car: ID_mock,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            }
+            const repair = new Repair(repairData);
+            await repair.save();
+            const result = await request(server).put('/api/repairs/' + repair._id).set('x-auth-token', token).send(repairData);
+            expect(result.status).toBe(400);
+        });
+
+        it('should return 200 if valid request', async () => {
+            const token = new Agent().generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const mechanic = new Mechanic({
+                ID_Base: ID_mock,
+                FirstName: 'FirstName M2',
+                LastName: 'LastName M2',
+                phone: '22445588',
+                salary: 777
+            });
+            await mechanic.save();
+            const car = new Car({
+                ID_Base: ID_mock,
+                Mark: 'Mark1',
+                Model: 'Model1',
+                Registration_Number: '123',
+                production_Year: '1234',
+                Rent_Price: 50,
+                Category: 'category1'
+            });
+            await car.save();
+            const repairData = {
+                ID_Mechanic: mechanic._id,
+                ID_Car: car._id,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            }
+            const repair = new Repair(repairData);
+            await repair.save();
+            const result = await request(server).put('/api/repairs/' + repair._id).set('x-auth-token', token).send(repairData);
+            expect(result.status).toBe(200);
+        });
+
+        it('should save the changes in the db if valid request', async () => {
+            const token = new Agent().generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const mechanic = new Mechanic({
+                ID_Base: ID_mock,
+                FirstName: 'FirstName M2',
+                LastName: 'LastName M2',
+                phone: '22445588',
+                salary: 777
+            });
+            await mechanic.save();
+            const car = new Car({
+                ID_Base: ID_mock,
+                Mark: 'Mark1',
+                Model: 'Model1',
+                Registration_Number: '123',
+                production_Year: '1234',
+                Rent_Price: 50,
+                Category: 'category1'
+            });
+            await car.save();
+            const repairData = {
+                ID_Mechanic: mechanic._id,
+                ID_Car: car._id,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            }
+            const repair = new Repair(repairData);
+            await repair.save();
+            repairData.costs = 2;
+            await request(server).put('/api/repairs/' + repair._id).set('x-auth-token', token).send(repairData);
+            const result = await Repair.findOne({ ID_Mechanic: mechanic._id, ID_Car: car._id, Repair_Date: '2002-12-10T00:00:00.000Z', });
+            expect(result.costs).toBe(2);
+        });
+
+        it('should return the modified repair if valid request', async () => {
+            const token = new Agent().generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const mechanic = new Mechanic({
+                ID_Base: ID_mock,
+                FirstName: 'FirstName M2',
+                LastName: 'LastName M2',
+                phone: '22445588',
+                salary: 777
+            });
+            await mechanic.save();
+            const car = new Car({
+                ID_Base: ID_mock,
+                Mark: 'Mark1',
+                Model: 'Model1',
+                Registration_Number: '123',
+                production_Year: '1234',
+                Rent_Price: 50,
+                Category: 'category1'
+            });
+            await car.save();
+            const repairData = {
+                ID_Mechanic: mechanic._id,
+                ID_Car: car._id,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            }
+            const repair = new Repair(repairData);
+            await repair.save();
+            repairData.costs = 2;
+            const result = await request(server).put('/api/repairs/' + repair._id).set('x-auth-token', token).send(repairData);
+            expect(result.body).toHaveProperty('costs', 2);
+        });
     });
-    // DELETE /:id
-    //  should return 401 if user not logged in
-    //  should return 400 if invalid token given
-    //  should return 400 if invalid id given
-    //  should return 404 if no repair with the given id exists
-    //  should return 200 if valid request
-    //  should remove the repair from the db
-    //  should return the deleted repair
+
+    describe('DELETE /:id', () => {
+
+        it('should return 401 if user not logged in', async () => {
+            const result = await request(server).delete('/api/repairs/1').send();
+            expect(result.status).toBe(401);
+        });
+
+        it('should return 400 if invalid token given', async () => {
+            const result = await request(server).delete('/api/repairs/1').set('x-auth-token', null).send();
+            expect(result.status).toBe(400);
+        });
+
+        it('should return 403 if user not admin', async () => {
+            const token = new Agent().generateAuthToken();
+            const result = await request(server).delete('/api/repairs/1').set('x-auth-token', token).send();
+            expect(result.status).toBe(403);
+        });
+
+        it('should return 400 if invalid id given', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const result = await request(server).delete('/api/repairs/1').set('x-auth-token', token).send();
+            expect(result.status).toBe(400);
+            expect(result.error.text).toBe('invalid id.');
+        });
+
+        it('should return 404 if no repair corrsponds to the given id', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const id = mongoose.Types.ObjectId();
+            const result = await request(server).delete('/api/repairs/' + id).set('x-auth-token', token).send();
+            expect(result.status).toBe(404);
+        });
+
+        it('should return 200 if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const repair = new Repair({
+                ID_Mechanic: ID_mock,
+                ID_Car: ID_mock,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            });
+            repair.save();
+            const result = await request(server).delete('/api/repairs/' + repair._id).set('x-auth-token', token).send();
+            expect(result.status).toBe(200);
+        });
+
+        it('should remove the repair with the given id from the db if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const repair = new Repair({
+                ID_Mechanic: ID_mock,
+                ID_Car: ID_mock,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            });
+            repair.save();
+            await request(server).delete('/api/repairs/' + repair._id).set('x-auth-token', token).send();
+            const result = await Repair.findOne({ ID_Mechanic: ID_mock, ID_Car: ID_mock, Repair_Date: '2002-12-10T00:00:00.000Z', costs: 1 });
+            expect(result).not.toBeTruthy();
+        });
+
+        it('should remove the repair with the given id from the db if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const ID_mock = new mongoose.Types.ObjectId();
+            const repair = new Repair({
+                ID_Mechanic: ID_mock,
+                ID_Car: ID_mock,
+                Repair_Date: '2002-12-10T00:00:00.000Z',
+                costs: 1
+            });
+            repair.save();
+            const result = await request(server).delete('/api/repairs/' + repair._id).set('x-auth-token', token).send();
+            expect(Object.keys(result.body)).toEqual(
+                expect.arrayContaining(['ID_Mechanic', 'ID_Car', 'Repair_Date', 'costs']));
+        });
+
+
+        //  should return the deleted repair
+    });
 });
