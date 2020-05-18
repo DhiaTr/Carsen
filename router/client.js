@@ -74,6 +74,10 @@ router.delete('/:id', [auth, admin], async (req, res) => {
     let client = await Client.findById(req.params.id);
     if (!client) return res.status(404).send('no client with the given id was found.');
 
+    client = await Client.findByIdAndDelete(req.params.id);
+
+
+    res.send(client);
 });
 
 

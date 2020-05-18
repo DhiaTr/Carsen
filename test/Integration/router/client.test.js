@@ -321,9 +321,39 @@ describe('/api/client', () => {
             const result = await request(server).delete('/api/clients/' + client._id).set('x-auth-token', token).send();
             expect(result.status).toBe(200);
         });
-        //  should return 200 if valid request
-        //  the client with the given id shouldn't exist in the db if valid request
-        //  should return the deleted client if valid request
+
+        it('the client with the given id shouldn\'t exist in the db if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const clientData = {
+                CIN: '11111111',
+                FirstName: 'FirstNameClient1',
+                LastName: 'LastNameClient1',
+                phone: '11111111',
+                address: 'Client 1 Address Line.........'
+            };
+            const client = new Client(clientData);
+            await client.save();
+            await request(server).delete('/api/clients/' + client._id).set('x-auth-token', token).send();
+            const result = await Client.findOne({ phone: clientData.phone });
+            expect(result).not.toBeTruthy();
+        });
+
+        it('should return the deleted client if valid request', async () => {
+            const token = new Agent({ isAdmin: true }).generateAuthToken();
+            const clientData = {
+                CIN: '11111111',
+                FirstName: 'FirstNameClient1',
+                LastName: 'LastNameClient1',
+                phone: '11111111',
+                address: 'Client 1 Address Line.........'
+            };
+            const client = new Client(clientData);
+            await client.save();
+            const result = await request(server).delete('/api/clients/' + client._id).set('x-auth-token', token).send();
+            expect(result.body).toHaveProperty('phone', clientData.phone);
+        });
+
+
     });
 
 });
