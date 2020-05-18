@@ -122,7 +122,7 @@ describe('/api/client', () => {
     describe('POST /', () => {
 
         const exec = async () => {
-            return await request(server).post('/api/clients/').set('x-auth-token', token).send();
+            return await request(server).post('/api/clients/').set('x-auth-token', token).send(clientData);
         }
 
         it('should return 401 if user not logged in', async () => {
@@ -170,7 +170,7 @@ describe('/api/client', () => {
     describe('PUT /:id', () => {
 
         const exec = async () => {
-            return await request(server).put('/api/clients/' + id).set('x-auth-token', token).send();
+            return await request(server).put('/api/clients/' + id).set('x-auth-token', token).send(clientData);
         }
 
         it('should return 401 if user not logged in', async () => {

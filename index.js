@@ -6,6 +6,7 @@ const cars = require('./router/car');
 const mechanics = require('./router/mechanics');
 const repairs = require('./router/repair');
 const clients = require('./router/client');
+const archived_orders = require('./router/archived_order');
 
 app.use(express.json());
 
@@ -17,6 +18,7 @@ app.use('/api/mechanics', mechanics);
 app.use('/api/agents', agents);
 app.use('/api/repairs', repairs);
 app.use('/api/clients', clients);
+app.use('/api/archived_orders', archived_orders);
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`Listening on port ${port}...`));
