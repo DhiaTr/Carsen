@@ -8,12 +8,13 @@ const repairs = require('./router/repair');
 const clients = require('./router/client');
 const archived_orders = require('./router/archived_order');
 const orders = require('./router/order');
-
+const auth = require('./router/auth');
 
 app.use(express.json());
 
 require('./startup/db')();
 require('./startup/config')();
+
 app.use('/api/cars', cars);
 app.use('/api/base', Base);
 app.use('/api/mechanics', mechanics);
@@ -22,6 +23,7 @@ app.use('/api/repairs', repairs);
 app.use('/api/clients', clients);
 app.use('/api/archived_orders', archived_orders);
 app.use('/api/orders', orders);
+app.use('/api/auth', auth);
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`Listening on port ${port}...`));

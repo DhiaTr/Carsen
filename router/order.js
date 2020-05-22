@@ -5,6 +5,7 @@ const router = express.Router();
 const { Order, validateOrder } = require('../models/order');
 const { Client } = require('../models/client');
 const { Car } = require('../models/car');
+const { ArchivedOrder } = require('../models/archived_order');
 
 const auth = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
@@ -88,6 +89,14 @@ router.delete('/:id', [auth, admin], async (req, res) => {
     let order = await Order.findById(req.params.id);
     if (!order) return res.status(404).send('no order with the given id was found.');
 
+    const archivedOrder = new ArchivedOrder({
+        ID_Client: order.ID_Client,
+        ID_Car: order.ID_Car,
+        Order_Date: order.Order_Date,
+        Rent_Start_Date: order.Rent_Start_Date,
+        Rent_End_Date: order.Rent_End_Date
+    });
+    await archivedOrder.save();
     order = await Order.findByIdAndDelete(req.params.id);
 
     res.send(order);

@@ -5,6 +5,7 @@ const { Agent } = require('../../../models/agent');
 const { Client } = require('../../../models/client');
 const { Car } = require('../../../models/car');
 const { Order } = require('../../../models/order');
+const { ArchivedOrder } = require('../../../models/archived_order');
 
 let orderData;
 let ID_mock;
@@ -349,6 +350,19 @@ describe('/api/orders', () => {
             expect(Object.keys(result.body)).toEqual(
                 expect.arrayContaining(['ID_Client', 'ID_Car', 'Rent_Start_Date', 'Rent_End_Date']));
         });
+
+        it('should be saved at archived orders if valid request', async () => {
+            token = new Agent({ isAdmin: true }).generateAuthToken();
+            await order.save();
+            await exec();
+            const result = await ArchivedOrder.findOne({
+                ID_Client: client._id,
+                ID_Car: car._id,
+                Rent_Start_Date: '2002-12-10T00:00:00.000Z'
+            });
+            expect(result).toBeTruthy();
+        });
+
 
     });
 });
