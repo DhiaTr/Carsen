@@ -25,7 +25,7 @@ router.get('/:id', auth, async (req, res) => {
     res.send(await Agent.findById(req.params.id));
 });
 
-router.post('/', [auth, admin], async (req, res) => {
+router.post('/',  [auth, admin],async (req, res) => {
     const { error } = validateAgent(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -44,7 +44,7 @@ router.post('/', [auth, admin], async (req, res) => {
         LastName: req.body.LastName,
         phone: req.body.phone,
         email: req.body.email,
-        salary: req.body.salary,
+        salary: req.body.salary
     });
     const salt = await bcrypt.genSalt(10);
     agent.password = await bcrypt.hash(req.body.password, salt);

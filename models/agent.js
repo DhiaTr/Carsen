@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const schema = mongoose.Schema({
+const schema = new mongoose.Schema({
     ID_Base: {
         type: new mongoose.Schema({
             B_Name: {
@@ -47,13 +47,17 @@ const schema = mongoose.Schema({
         type: Date,
         default: Date.now
     },
+	isAdmin: {
+		type: Boolean,
+		default: false
+	},
     password: {
         type: String,
         minlength: 5,
         maxlength: 1024,
         required: true
-    },
-    isAdmin: Boolean
+    }
+
 });
 
 schema.methods.generateAuthToken = function () {
