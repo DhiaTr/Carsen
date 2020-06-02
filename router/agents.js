@@ -58,13 +58,16 @@ router.put('/:id', [auth, admin], async (req, res) => {
 
     const result = mongoose.Types.ObjectId.isValid(req.params.id);
     if (!result) return res.status(400).send('Invalid id provided.');
+	
+	const base = await Base.findById(req.body.ID_Base);
+    if (!base) return res.status(400).send('invalid base id.');
 
     let agent = await Agent.findById(req.params.id);
     if (!agent) return res.status(404).send('agent not found!');
 
     agent = await Agent.findByIdAndUpdate(req.params.id,
         {
-            ID_Base: { _id: req.body.ID_Base._id, B_Name: req.body.ID_Base.B_Name },
+            ID_Base: { _id: base._id, B_Name: base.B_Name },
             FirstName: req.body.FirstName,
             LastName: req.body.LastName,
             phone: req.body.phone,
