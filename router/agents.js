@@ -65,6 +65,9 @@ router.put('/:id', [auth, admin], async (req, res) => {
     let agent = await Agent.findById(req.params.id);
     if (!agent) return res.status(404).send('agent not found!');
 
+	
+	const salt = await bcrypt.genSalt(10);
+    const password = await bcrypt.hash(req.body.password, salt);
     agent = await Agent.findByIdAndUpdate(req.params.id,
         {
             ID_Base: { _id: base._id, B_Name: base.B_Name },
@@ -73,7 +76,7 @@ router.put('/:id', [auth, admin], async (req, res) => {
             phone: req.body.phone,
             email: req.body.email,
             salary: req.body.salary,
-            password: req.body.password
+            password: password
         }, {
         new: true
     });
