@@ -8,7 +8,7 @@ const { Agent } = require('../models/agent');
 function validateAuth(agentAuthInfo) {
     schema = {
         email: Joi.string().min(10).max(150).required(),
-        password: Joi.string().min(5).max(1024).required()
+        password: Joi.string().min(5).max(150).required()
     }
     return Joi.validate(agentAuthInfo, schema);
 }

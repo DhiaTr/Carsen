@@ -38,7 +38,7 @@ router.post('/',  [auth, admin],async (req, res) => {
     agent = new Agent({
         ID_Base: {
             _id: base._id,
-            B_Name: base._id
+            B_Name: base.B_Name
         },
         FirstName: req.body.FirstName,
         LastName: req.body.LastName,
