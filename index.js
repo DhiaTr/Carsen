@@ -9,8 +9,11 @@ const clients = require('./router/client');
 const archived_orders = require('./router/archived_order');
 const orders = require('./router/order');
 const auth = require('./router/auth');
+var cors = require('cors')
 
+app.use(cors());
 app.use(express.json());
+
 
 require('./startup/db')();
 require('./startup/config')();

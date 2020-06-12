@@ -10,7 +10,7 @@ const auth = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
 
 router.get('/', auth, async (req, res) => {
-    res.send(await Repair.find());
+    res.send(await Repair.find().populate('ID_Mechanic').populate('ID_Car'));
 });
 
 router.get('/:id', auth, async (req, res) => {
@@ -21,7 +21,7 @@ router.get('/:id', auth, async (req, res) => {
     const repair = await Repair.findById(req.params.id);
     if (!repair) return res.status(404).send('repair not found.');
 
-    res.send(await Repair.findById(req.params.id));
+    res.send(await Repair.findById(req.params.id).populate('ID_Mechanic').populate('ID_Car'));
 });
 
 router.post('/', auth, async (req, res) => {
