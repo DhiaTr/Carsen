@@ -11,7 +11,7 @@ const auth = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
 
 router.get('/', auth, async (req, res) => {
-    res.send(await Order.find());
+    res.send(await Order.find().populate('ID_Car').populate('ID_Client'));
 });
 
 router.get('/:id', auth, async (req, res) => {
@@ -22,7 +22,7 @@ router.get('/:id', auth, async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).send('no order with the given id was found.');
 
-    res.send(order);
+    res.send(order).populate('ID_Car').populate('ID_Client');
 });
 
 router.post('/', auth, async (req, res) => {
