@@ -19,10 +19,10 @@ router.get('/:id', auth, async (req, res) => {
     const idStatus = mongoose.Types.ObjectId.isValid(req.params.id);
     if (!idStatus) return res.status(400).send('invalid id.');
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('ID_Car').populate('ID_Client');
     if (!order) return res.status(404).send('no order with the given id was found.');
 
-    res.send(order).populate('ID_Car').populate('ID_Client');
+    res.send(order);
 });
 
 router.post('/', auth, async (req, res) => {
@@ -45,7 +45,6 @@ router.post('/', auth, async (req, res) => {
     order = new Order({
         ID_Client: req.body.ID_Client,
         ID_Car: req.body.ID_Car,
-        Order_Date: req.body.Order_Date,
         Rent_Start_Date: req.body.Rent_Start_Date,
         Rent_End_Date: req.body.Rent_End_Date
     });
@@ -70,14 +69,14 @@ router.put('/:id', auth, async (req, res) => {
     const car = await Car.findById(req.body.ID_Car);
     if (!car) return res.status(400).send('no car with the given id was found');
 
-    order = new Order({
+    order = await Order.findByIdAndUpdate(req.params.id, {
         ID_Client: req.body.ID_Client,
         ID_Car: req.body.ID_Car,
-        Order_Date: req.body.Order_Date,
         Rent_Start_Date: req.body.Rent_Start_Date,
         Rent_End_Date: req.body.Rent_End_Date
+    }, {
+        new: true
     });
-    await order.save();
     res.send(order);
 });
 
