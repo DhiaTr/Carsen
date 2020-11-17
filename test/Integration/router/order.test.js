@@ -132,10 +132,12 @@ describe('/api/orders', () => {
         });
 
         it('should return the requested order if valid request', async () => {
-            order.save();
+            await client.save();
+            await car.save();
+            await order.save();
             const result = await exec();
             expect(result.body).toHaveProperty('Rent_Start_Date', '2002-12-10T00:00:00.000Z');
-            expect(result.body).toHaveProperty('ID_Car', car._id.toHexString());
+            expect(result.body).toHaveProperty('ID_Car._id', car._id.toHexString());
         });
     });
 

@@ -252,6 +252,7 @@ describe('/api/agent', () => {
         });
 
         it('should return 404 if no agent corresponds to the given id', async () => {
+            await base.save();
             agent._id = mongoose.Types.ObjectId();
             const result = await exec();
             expect(result.status).toBe(404);
