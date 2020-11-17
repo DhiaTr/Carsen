@@ -22,7 +22,7 @@ router.get('/:id', auth, async (req, res) => {
     const order = await Order.findById(req.params.id).populate('ID_Car').populate('ID_Client');
     if (!order) return res.status(404).send('no order with the given id was found.');
 
-    res.send(order).populate('ID_Car').populate('ID_Client');
+    res.send(order);
 });
 
 router.post('/', auth, async (req, res) => {
