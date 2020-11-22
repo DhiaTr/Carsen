@@ -4,15 +4,21 @@
   "description": "car rental service  RESTful API",
   "main": "index.js",
   "scripts": {
-    "test": "jest --runInBand --verbose --coverage"
+    "test": "jest --runInBand --verbose --coverage",
+    "start": "node index.js"
+  },
+  "engine": {
+    "node": "12.14.1"
   },
   "author": "Dhia Eddine Trabelsi",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^4.0.1",
+    "compression": "^1.7.4",
     "config": "^3.3.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "helmet": "^4.2.0",
     "jest": "^25.4.0",
     "joi": "^14.3.1",
     "joi-objectid": "^3.0.1",

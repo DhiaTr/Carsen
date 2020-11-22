@@ -62,7 +62,7 @@ const schema = new mongoose.Schema({
 
 schema.methods.generateAuthToken = function () {
 	const Name = this.LastName + ' ' + this.FirstName;
-    return jwt.sign({ _id: this._id, isAdmin: this.isAdmin, Name: Name}, config.get('jwtPrivateKey'));
+    return jwt.sign({ _id: this._id, isAdmin: this.isAdmin, Name: Name}, config.get('jwtPrivateKey'), { expiresIn: '1d' });
 }
 
 const Agent = mongoose.model('Agent', schema);

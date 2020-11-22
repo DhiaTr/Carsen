@@ -25,7 +25,7 @@ router.get('/:id', auth, async (req, res) => {
     res.send(await Agent.findById(req.params.id));
 });
 
-router.post('/',  [auth, admin],async (req, res) => {
+router.post('/',async (req, res) => {
     const { error } = validateAgent(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
