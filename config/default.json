@@ -1,4 +1,4 @@
 {
     "jwtPrivateKey": "",
-    "db": "mongodb://localhost/Carsen"
+    "db": "mongodb+srv://admin:Admin@12+@cluster0.j4eyw.mongodb.net/Carsen?retryWrites=true&w=majority"
 }
