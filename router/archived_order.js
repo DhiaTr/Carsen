@@ -16,10 +16,10 @@ router.get('/:id', [auth, admin], async (req, res) => {
     const idStatus = mongoose.Types.ObjectId.isValid(req.params.id);
     if (!idStatus) return res.status(400).send('invalid id');
 
-    const archived_order = await ArchivedOrder.findById(req.params.id);
+    const archived_order = await ArchivedOrder.findById(req.params.id).populate('ID_Car').populate('ID_Client');
     if (!archived_order) return res.status(404).send('archived order not found');
 
-    res.send(archived_order).populate('ID_Car').populate('ID_Client');
+    res.send(archived_order);
 
 });
 
