@@ -5,6 +5,7 @@ const { Car, validateCar } = require('../models/car');
 const { Base } = require('../models/base');
 
 const auth = require('../middlewares/auth');
+const admin = require('../middlewares/admin');
 
 
 router.get('/', auth, async (req, res) => {
