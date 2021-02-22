@@ -10,11 +10,11 @@ const auth = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
 
 
-router.get('/', auth, async (req, res) => {
+router.get('/', [auth, admin], async (req, res) => {
     res.send(await Agent.find());
 });
 
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', [auth, admin], async (req, res) => {
 
     let result = mongoose.Types.ObjectId.isValid(req.params.id);
     if (!result) return res.status(400).send('Invalid id provided.');
@@ -25,7 +25,7 @@ router.get('/:id', auth, async (req, res) => {
     res.send(await Agent.findById(req.params.id));
 });
 
-router.post('/',async (req, res) => {
+router.post('/', [auth, admin],async (req, res) => {
     const { error } = validateAgent(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 

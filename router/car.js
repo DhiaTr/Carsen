@@ -22,7 +22,7 @@ router.get('/:id', auth, async (req, res) => {
     res.send(car);
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', [auth, admin], async (req, res) => {
 
     let { error } = validateCar(req.body);
     if (error) return res.status(400).send(error.details[0].message);
@@ -43,7 +43,7 @@ router.post('/', auth, async (req, res) => {
     res.send(car);
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', [auth, admin], async (req, res) => {
 
     const result = mongoose.Types.ObjectId.isValid(req.params.id);
     if (!result) return res.status(400).send('Invalid id provided.');
@@ -70,7 +70,7 @@ router.put('/:id', auth, async (req, res) => {
 
 });
 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', [auth, admin], async (req, res) => {
 
     let result = mongoose.Types.ObjectId.isValid(req.params.id);
     if (!result) return res.status(400).send('Invalid id provided.');

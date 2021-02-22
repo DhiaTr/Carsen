@@ -20,7 +20,7 @@ router.get('/:id', auth, async (req, res) => {
     return res.send(await Base.findById(req.params.id));
 });
 
-router.post('/', async (req, res) => {
+router.post('/', [auth, admin],async (req, res) => {
 
     const { error } = validateBase(req.body);
     if (error) return res.status(400).send(error.details[0].message);
